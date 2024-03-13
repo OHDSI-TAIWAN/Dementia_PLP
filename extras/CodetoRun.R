@@ -40,11 +40,12 @@ pairs <- list(
 
 saveDir <- "./out_"
 #DatabaseConnector::downloadJdbcDrivers('sql server','~/.config/jdbc/')
+# adjust with your db
 conn <- DatabaseConnector::createConnectionDetails(
   'sql server',
-  user = 'sa',
-  password = 'hiking@tmu2',
-  server = '10.164.1.154',
+  user = 'user',
+  password = 'password',
+  server = 'server_address',
   pathToDriver = '~/.config/jdbc/'
 )
 
@@ -57,17 +58,21 @@ for (key in names(pairs)) {
   cohortIds <- c(targetId, outcomeId)  
   
   #ROhdsiWebApi::authorizeWebApi('http://192.168.193.194:8080/WebAPI', authMethod = 'db', webApiUsername = 'admin', webApiPassword = 'admin')
+  
+  # adjust with your own WebAPI
   cohortDef <- ROhdsiWebApi::exportCohortDefinitionSet(
     baseUrl = 'http://10.164.1.154:8080/WebAPI', 
     cohortIds = cohortIds
   )
+  
+  # adjust the details below
   databaseDetails <- PatientLevelPrediction::createDatabaseDetails(
     connectionDetails = conn,
-    cdmDatabaseSchema = 'OHDSI_V5_V2.dbo',
-    cdmDatabaseName = 'TMU CRD',
-    cdmDatabaseId = 'tmudb',
-    cohortDatabaseSchema = 'OHDSI_ACHILLES.dbo',
-    outcomeDatabaseSchema = 'OHDSI_ACHILLES.dbo',
+    cdmDatabaseSchema = 'OHDSI_V5.dbo',
+    cdmDatabaseName = 'your_db_name',
+    cdmDatabaseId = 'your_db_id',
+    cohortDatabaseSchema = 'OHDSI_V5.tmp',
+    outcomeDatabaseSchema = 'OHDSI_V5.tmp',
     cohortTable = cohortTable,
     outcomeTable = cohortTable,
     targetId = targetId,
@@ -77,14 +82,14 @@ for (key in names(pairs)) {
   tableNames<-CohortGenerator::getCohortTableNames(cohortTable = cohortTable)
   CohortGenerator::createCohortTables(
     connectionDetails = conn,
-    cohortDatabaseSchema = 'OHDSI_ACHILLES.dbo',
+    cohortDatabaseSchema = 'OHDSI_V5.dbo',
     cohortTableNames = tableNames
   )
   cohortGen<-CohortGenerator::generateCohortSet(
     conn,
-    cdmDatabaseSchema = 'OHDSI_V5_V2.dbo',
+    cdmDatabaseSchema = 'OHDSI_V5.dbo',
     tempEmulationSchema = NULL,
-    cohortDatabaseSchema = 'OHDSI_ACHILLES.dbo',
+    cohortDatabaseSchema = 'OHDSI_V5.tmp',
     cohortTableNames = tableNames,
     cohortDefinitionSet = cohortDef
   )
